@@ -12,7 +12,12 @@ export default defineConfig({
     vercel(),
   ],
   vercel: {
-    // optional configuration options, see "Advanced usage" below for details
+    rewrites: [
+      {
+        "source": "/(.*)",
+        "destination": "/index.html"
+      }
+    ],
   },
   resolve: {
     alias: {
