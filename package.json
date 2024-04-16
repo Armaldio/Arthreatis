@@ -21,6 +21,7 @@
     "barcode-detector": "^2.2.5",
     "ionicons": "^7.0.0",
     "vue": "^3.3.0",
+    "vue-qrcode-reader": "^5.5.3",
     "vue-router": "^4.2.0"
   },
   "devDependencies": {

@@ -12,9 +12,8 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-button @click="startScan">Start Scan</ion-button>
-      <video id="video"></video>
-      <canvas id="canvas"></canvas>
+      <!-- <ion-button @click="startScan">Start Scan</ion-button> -->
+      <qrcode-stream @detect="onDetect" :formats="['ean_13']"></qrcode-stream>
     </ion-content>
   </ion-page>
 </template>
@@ -27,6 +26,7 @@ import {
   IonTitle,
   IonContent,
 } from "@ionic/vue";
+import { QrcodeStream, QrcodeDropZone, QrcodeCapture } from 'vue-qrcode-reader'
 
 import { BarcodeDetector } from "barcode-detector";
 import { useRouter } from "vue-router";
@@ -116,6 +116,14 @@ const detectBarcode = async () => {
     }
   });
 };
+
+const onDetect = (detectedCodes: Array<{ rawValue: string}>) => {
+  console.log('detectedCodes', detectedCodes)
+  const firstValue = detectedCodes[0]
+  if (firstValue) {
+    onFound(firstValue.rawValue)
+  }
+}
 
 const onFound = async (code: string) => {
   router.push({
