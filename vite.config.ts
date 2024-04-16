@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [
     vue(),
     legacy(),
-    vercel(),
+    // vercel(),
   ],
   vercel: {
     rewrites: [
