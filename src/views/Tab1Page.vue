@@ -26,7 +26,7 @@ import {
   IonTitle,
   IonContent,
 } from "@ionic/vue";
-import { QrcodeStream, QrcodeDropZone, QrcodeCapture } from 'vue-qrcode-reader'
+import { QrcodeStream } from 'vue-qrcode-reader'
 
 import { BarcodeDetector } from "barcode-detector";
 import { useRouter } from "vue-router";
