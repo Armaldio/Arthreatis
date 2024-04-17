@@ -13,7 +13,7 @@
       </ion-header>
 
       <!-- <ion-button @click="startScan">Start Scan</ion-button> -->
-      <qrcode-stream @detect="onDetect" :formats="['ean_13']"></qrcode-stream>
+      <qrcode-stream @detect="onDetect" :formats="formats"></qrcode-stream>
     </ion-content>
   </ion-page>
 </template>
@@ -28,12 +28,11 @@ import {
 } from "@ionic/vue";
 import { QrcodeStream } from 'vue-qrcode-reader'
 
-import { BarcodeDetector } from "barcode-detector";
 import { useRouter } from "vue-router";
 
 const router = useRouter()
 
-const barcodeDetector = new BarcodeDetector({ formats: [
+const formats = [
   "aztec",
   "code_128",
   "code_39",
@@ -55,7 +54,7 @@ const barcodeDetector = new BarcodeDetector({ formats: [
   "upc_e",
   "linear_codes",
   "matrix_codes"
-] });
+]
 let video: HTMLVideoElement | null = null;
 let canvas: HTMLCanvasElement | null = null;
 let context: CanvasRenderingContext2D | null = null;
