@@ -28,9 +28,9 @@ import {
 } from "@ionic/vue";
 import { QrcodeStream } from 'vue-qrcode-reader'
 
-import { useRouter } from "vue-router";
+import { useIonRouter } from '@ionic/vue';
 
-const router = useRouter()
+const ionRouter = useIonRouter();
 
 const formats = [
   "aztec",
@@ -55,66 +55,6 @@ const formats = [
   "linear_codes",
   "matrix_codes"
 ]
-let video: HTMLVideoElement | null = null;
-let canvas: HTMLCanvasElement | null = null;
-let context: CanvasRenderingContext2D | null = null;
-let stream: MediaStream | null = null;
-const frameInterval = 100;
-
-const startScan = () => {
-  navigator.mediaDevices
-    .getUserMedia({ video: { facingMode: "environment" } })
-    .then((mediaStream) => {
-      console.log('mediaStream', mediaStream)
-      video = document.querySelector("#video");
-      console.log('video', video)
-      if (video) {
-        video.srcObject = mediaStream;
-        video.play();
-        canvas = document.querySelector("#canvas");
-
-        if (canvas) {
-          context = canvas.getContext("2d");
-          stream = mediaStream;
-          setTimeout(detectBarcode, frameInterval);
-        }
-      }
-    })
-    .catch((err) => console.error(err));
-};
-
-const detectBarcode = async () => {
-  if (!video || !context || !stream || !canvas) {
-    return;
-  }
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  const imageBitmap = await createImageBitmap(imageData);
-
-  console.log('imageBitmap', imageBitmap)
-
-  barcodeDetector.detect(imageBitmap).then((barcodes) => {
-    console.log('barcodes', barcodes)
-    if (barcodes.length > 0) {
-      onFound(barcodes[0].rawValue)
-
-      if (!stream) {
-        return;
-      }
-
-      stream.getTracks().forEach((track) => track.stop());
-      video = null;
-      canvas = null;
-      context = null;
-      stream = null;
-    } else {
-      setTimeout(detectBarcode, frameInterval);
-    }
-  });
-};
 
 const onDetect = (detectedCodes: Array<{ rawValue: string}>) => {
   console.log('detectedCodes', detectedCodes)
@@ -125,11 +65,11 @@ const onDetect = (detectedCodes: Array<{ rawValue: string}>) => {
 }
 
 const onFound = async (code: string) => {
-  router.push({
+  ionRouter.push({
     name: 'ProductPage',
     params: {
       id: code
     }
-  })
+  },)
 }
 </script>
