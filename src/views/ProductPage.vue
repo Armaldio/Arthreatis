@@ -12,6 +12,35 @@
         </ion-toolbar>
       </ion-header>
 
+      <ion-modal id="rate-modal" :is-open="showAskModal">
+        <div class="wrapper">
+          <h1>Score</h1>
+
+          <ion-list lines="none">
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(-2)">
+              <span slot="start">😖</span>
+              <ion-label>Néfaste</ion-label>
+            </ion-item>
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(-1)">
+              <span slot="start">☹️</span>
+              <ion-label>Négatif</ion-label>
+            </ion-item>
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(0)">
+              <span slot="start">😐</span>
+              <ion-label>Sans impact</ion-label>
+            </ion-item>
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(1)">
+              <span slot="start">☺️</span>
+              <ion-label>Positif</ion-label>
+            </ion-item>
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(2)">
+              <span slot="start">😁</span>
+              <ion-label>Bénéfique</ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+      </ion-modal>
+
       <ion-card>
         <img alt="Silhouette of mountains" :src="imageFrontURL" />
         <ion-card-header>
@@ -25,7 +54,10 @@
             <div class="ingredients">
               <p>Ingrédients</p>
               <ion-list>
-                <ion-item v-for="ingredient in ingredients" :key="ingredient.id">
+                <ion-item
+                  v-for="ingredient in ingredients"
+                  :key="ingredient.id"
+                >
                   <!-- <ion-thumbnail slot="start">
                     <img
                       alt="Silhouette of mountains"
@@ -33,20 +65,37 @@
                     />
                   </ion-thumbnail> -->
                   <ion-label>
-                    {{ ingredient.text }}  -
-                    {{ ingredient.percent_estimate * score(ingredient.id) }}
+                    {{ ingredient.text }} -
+                    {{ ingredient.percent_estimate * score(ingredient.id, 1) }}
                   </ion-label>
-                  <ion-button @click="showAskModal = true" fill="clear" color="dark">
-                    <ion-icon slot="icon-only" :icon="helpCircleOutline"></ion-icon>
+                  <ion-button
+                    @click="rateIngredient(ingredient)"
+                    fill="clear"
+                    color="dark"
+                    v-if="score(ingredient.id) === undefined"
+                  >
+                    <ion-icon
+                      slot="icon-only"
+                      :icon="helpCircleOutline"
+                    ></ion-icon>
                   </ion-button>
-                  <ion-button fill="clear" color="success">
-                    <ion-icon slot="icon-only" :icon="checkmarkCircleOutline"></ion-icon>
+                  <ion-button v-if="score(ingredient.id) > 0" fill="clear" color="success">
+                    <ion-icon
+                      slot="icon-only"
+                      :icon="checkmarkCircleOutline"
+                    ></ion-icon>
                   </ion-button>
-                  <ion-button fill="clear" color="danger">
-                    <ion-icon slot="icon-only" :icon="closeCircleOutline"></ion-icon>
+                  <ion-button v-if="score(ingredient.id) < 0" fill="clear" color="danger">
+                    <ion-icon
+                      slot="icon-only"
+                      :icon="closeCircleOutline"
+                    ></ion-icon>
                   </ion-button>
-                  <ion-button fill="clear" color="warning">
-                    <ion-icon slot="icon-only" :icon="warningOutline"></ion-icon>
+                  <ion-button v-if="score(ingredient.id) === 0" color="dark" fill="clear">
+                    <ion-icon
+                      slot="icon-only"
+                      :icon="ellipseOutline"
+                    ></ion-icon>
                   </ion-button>
                 </ion-item>
               </ion-list>
@@ -55,31 +104,6 @@
         </ion-card-content>
       </ion-card>
     </ion-content>
-
-    <ion-modal :is-open="showAskModal">
-      <ion-header>
-        <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-button @click="showAskModal = false">Cancel</ion-button>
-          </ion-buttons>
-          <ion-title>Welcome</ion-title>
-          <ion-buttons slot="end">
-            <ion-button :strong="true" @click="confirmAskModal">Confirm</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content class="ion-padding">
-        <ion-item>
-          <ion-input
-            label="Enter your name"
-            label-placement="stacked"
-            ref="input"
-            type="text"
-            placeholder="Your name"
-          ></ion-input>
-        </ion-item>
-      </ion-content>
-    </ion-modal>
   </ion-page>
 </template>
 
@@ -88,8 +112,31 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { supabase } from "@/models/db";
 import { computed } from "vue";
-import { helpCircleOutline, checkmarkCircleOutline, closeCircleOutline, warningOutline } from 'ionicons/icons';
+import {
+  helpCircleOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  ellipseOutline,
+} from "ionicons/icons";
 import { Ingredient, Product } from "@/models/product";
+import {
+  IonButton,
+  IonModal,
+  IonHeader,
+  IonToolbar,
+  IonContent,
+  IonTitle,
+  IonCardHeader,
+  IonCardSubtitle,
+  IonCardContent,
+  IonPage,
+  IonIcon,
+  IonLabel,
+  IonItem,
+  IonList,
+  IonCard,
+  IonCardTitle,
+} from "@ionic/vue";
 
 const route = useRoute();
 
@@ -98,22 +145,50 @@ const code = route.params.id;
 const imageFrontURL = ref<string>("");
 const name = ref<string>("");
 const ingredients = ref<Ingredient[]>([]);
+const ingredientsDb = ref<{ id: number; score: number; off_id: string }[]>([]);
 const isLoading = ref(true);
 
 const product = ref<Product>();
 
-const showAskModal = ref(false)
+const showAskModal = ref(false);
+
+const currentIngredient = ref<Ingredient>()
+
+const rateIngredient = (ingredient: Ingredient) => {
+  currentIngredient.value = ingredient
+  showAskModal.value = true
+}
+
+const score = (productId: string, defaultValue: undefined | number = undefined) => {
+  const found = ingredientsDb.value.find(i => i.off_id === productId)
+  if (found) {
+    return found.score
+  }
+  return defaultValue;
+};
 
 const description = computed(() => {
   return product.value?.generic_name_fr ?? product.value?.generic_name ?? "";
 });
 
-const confirmAskModal = () => {
+const dismissAskModal = async (value: number) => {
+  console.log('value', value)
+  const { data, error } = await supabase
+    .from('ingredients')
+    .upsert({ off_id: currentIngredient.value.id, score: value })
+    .select()
+  console.log('data', data)
+  console.log('error', error)
 
-}
+  currentIngredient.value = undefined
+  showAskModal.value = false
+};
 
 onMounted(async () => {
   isLoading.value = true;
+
+  const { data: anonymouseSignInData, error } = await supabase.auth.signInAnonymously()
+  console.log('result', { anonymouseSignInData, error })
 
   const dataRaw = await fetch(
     "https://world.openfoodfacts.net/api/v2/product/" +
@@ -133,15 +208,46 @@ onMounted(async () => {
     ingredients.value = product.value?.ingredients ?? [];
 
     // fetch scores
-    const { data: ingredientsDb, error } = await supabase
-      .from('ingredients')
+    const { data: ingredientsDbValue, error } = await supabase
+      .from("ingredients")
       .select("*")
-      .in('off_id', ingredients.value.map(i => i.id))
-    console.log('ingredientsDb', ingredientsDb)
-    console.log('error', error)
+      .in(
+        "off_id",
+        ingredients.value.map((i) => i.id)
+      );
+    console.log("ingredientsDbValue", ingredientsDbValue);
+    console.log("error", error);
+    ingredientsDb.value = ingredientsDbValue
   }
   isLoading.value = false;
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+ion-modal#rate-modal {
+  --width: fit-content;
+  --min-width: 250px;
+  --height: fit-content;
+  --border-radius: 6px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+}
+
+ion-modal#rate-modal h1 {
+  margin: 20px 20px 10px 20px;
+}
+
+ion-modal#rate-modal ion-icon {
+  margin-right: 6px;
+
+  width: 48px;
+  height: 48px;
+
+  padding: 4px 0;
+
+  color: #aaaaaa;
+}
+
+ion-modal#rate-modal .wrapper {
+  margin-bottom: 10px;
+}
+</style>
