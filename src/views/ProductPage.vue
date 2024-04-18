@@ -42,7 +42,9 @@
       </ion-modal>
 
       <ion-card>
-        <img alt="Silhouette of mountains" :src="imageFrontURL" />
+        <div :style="{ display: 'flex', justifyContent: 'center' }">
+          <img :height="200" :alt="name" :src="imageFrontURL" />
+        </div>
         <ion-card-header>
           <ion-card-title>{{ name }}</ion-card-title>
           <ion-card-subtitle>{{ description }}</ion-card-subtitle>
@@ -51,6 +53,12 @@
         <ion-card-content>
           <div class="loading" v-if="isLoading">Chargement...</div>
           <div class="product" v-else>
+            <div class="nova" v-if="getNovaTranslation(product.nova_group)">
+              <span :style="{ color: getNovaColors(product.nova_group) }">{{ getNovaTranslation(product.nova_group) }}</span>
+            </div>
+            <div class="nutriscore" v-if="product.nutriscore_grade">
+              <span>Nutriscore {{ product.nutriscore_grade.toUpperCase() }}</span>
+            </div>
             <div class="ingredients">
               <p>Ingrédients</p>
               <ion-list>
@@ -64,9 +72,10 @@
                       src="https://ionicframework.com/docs/img/demos/thumbnail.svg"
                     />
                   </ion-thumbnail> -->
-                  <ion-label>
-                    {{ ingredient.text }} -
-                    {{ ingredient.percent_estimate * score(ingredient.id, 1) }}
+                  <ion-label style="display: flex;">
+                    <div :style="{ minWidth: '50px', }">{{ ingredient.percent_estimate }}%</div>
+                    <div>- &nbsp;</div>
+                    <div>{{ ingredient.text }}</div>
                   </ion-label>
                   <ion-button
                     @click="rateIngredient(ingredient)"
@@ -137,6 +146,21 @@ import {
   IonCard,
   IonCardTitle,
 } from "@ionic/vue";
+import { translations as novaTranslations, colors as novaColors } from '@/models/nova'
+
+const getNovaTranslation = (novaGroup: number | undefined) => {
+  if (novaGroup) {
+    return novaTranslations[novaGroup]
+  }
+  return undefined
+}
+
+const getNovaColors = (novaGroup: number | undefined) => {
+  if (novaGroup) {
+    return novaColors[novaGroup]
+  }
+  return undefined
+}
 
 const route = useRoute();
 

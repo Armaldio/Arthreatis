@@ -11,4 +11,5 @@ export interface Product {
     product_name_fr: string
     product_name: string
     ingredients: Array<Ingredient>
+    nova_group: 1 | 2 | 3 | 4
 }
