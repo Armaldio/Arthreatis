@@ -33,27 +33,27 @@ import { useIonRouter } from '@ionic/vue';
 const ionRouter = useIonRouter();
 
 const formats = [
-  "aztec",
-  "code_128",
-  "code_39",
-  "code_93",
-  "codabar",
-  "databar",
-  "databar_expanded",
-  "data_matrix",
-  "dx_film_edge",
+  // "aztec",
+  // "code_128",
+  // "code_39",
+  // "code_93",
+  // "codabar",
+  // "databar",
+  // "databar_expanded",
+  // "data_matrix",
+  // "dx_film_edge",
   "ean_13",
-  "ean_8",
-  "itf",
-  "maxi_code",
-  "micro_qr_code",
-  "pdf417",
-  "qr_code",
-  "rm_qr_code",
-  "upc_a",
-  "upc_e",
-  "linear_codes",
-  "matrix_codes"
+  // "ean_8",
+  // "itf",
+  // "maxi_code",
+  // "micro_qr_code",
+  // "pdf417",
+  // "qr_code",
+  // "rm_qr_code",
+  // "upc_a",
+  // "upc_e",
+  // "linear_codes",
+  // "matrix_codes"
 ]
 
 const onDetect = (detectedCodes: Array<{ rawValue: string}>) => {
