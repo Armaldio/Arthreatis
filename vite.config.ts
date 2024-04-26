@@ -1,31 +1,35 @@
 import legacy from '@vitejs/plugin-legacy'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vercel from 'vite-plugin-vercel';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [
-    vue(),
-    legacy(),
-    // vercel(),
-  ],
-  vercel: {
-    rewrites: [
-      {
-        "source": "/(.*)",
-        "destination": "/index.html"
-      }
+export default defineConfig(({ mode }) => {
+  const newEnv = loadEnv(mode, process.cwd())
+  console.log('newEnv', newEnv)
+  return {
+    plugins: [
+      vue(),
+      legacy(),
+      // vercel(),
     ],
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+    vercel: {
+      rewrites: [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ],
     },
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom'
-  }
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom'
+    }
+  };
 })

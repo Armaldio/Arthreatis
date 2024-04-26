@@ -20,6 +20,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/Tab1Page.vue')
       },
       {
+        path: 'search',
+        component: () => import('@/views/SearchTab.vue')
+      },
+      {
         path: 'settings',
         component: () => import('@/views/Tab3Page.vue')
       }

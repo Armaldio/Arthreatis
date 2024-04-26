@@ -2,6 +2,7 @@ export interface Ingredient {
     id: string
     text: string
     percent_estimate: number
+    ingredients: Ingredient[]
 }
 
 export interface Product {
@@ -12,4 +13,6 @@ export interface Product {
     product_name: string
     ingredients: Array<Ingredient>
     nova_group: 1 | 2 | 3 | 4
+    nutriscore_grade: string
+    code: string
 }

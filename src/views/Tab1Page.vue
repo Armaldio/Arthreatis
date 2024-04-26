@@ -2,17 +2,16 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Tab 1</ion-title>
+        <ion-title>Scan</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content :fullscreen="true">
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Tab 1</ion-title>
+          <ion-title size="large">Scan</ion-title>
         </ion-toolbar>
       </ion-header>
 
-      <!-- <ion-button @click="startScan">Start Scan</ion-button> -->
       <qrcode-stream @detect="onDetect" :formats="formats"></qrcode-stream>
     </ion-content>
   </ion-page>

@@ -41,7 +41,7 @@
         </div>
       </ion-modal>
 
-      <ion-card>
+      <ion-card v-if="product">
         <div :style="{ display: 'flex', justifyContent: 'center' }">
           <img :height="200" :alt="name" :src="imageFrontURL" />
         </div>
@@ -61,53 +61,7 @@
             </div>
             <div class="ingredients">
               <p>Ingrédients</p>
-              <ion-list>
-                <ion-item
-                  v-for="ingredient in ingredients"
-                  :key="ingredient.id"
-                >
-                  <!-- <ion-thumbnail slot="start">
-                    <img
-                      alt="Silhouette of mountains"
-                      src="https://ionicframework.com/docs/img/demos/thumbnail.svg"
-                    />
-                  </ion-thumbnail> -->
-                  <ion-label style="display: flex;">
-                    <div :style="{ minWidth: '50px', }">{{ ingredient.percent_estimate }}%</div>
-                    <div>- &nbsp;</div>
-                    <div>{{ ingredient.text }}</div>
-                  </ion-label>
-                  <ion-button
-                    @click="rateIngredient(ingredient)"
-                    fill="clear"
-                    color="dark"
-                    v-if="score(ingredient.id) === undefined"
-                  >
-                    <ion-icon
-                      slot="icon-only"
-                      :icon="helpCircleOutline"
-                    ></ion-icon>
-                  </ion-button>
-                  <ion-button v-if="score(ingredient.id) > 0" fill="clear" color="success">
-                    <ion-icon
-                      slot="icon-only"
-                      :icon="checkmarkCircleOutline"
-                    ></ion-icon>
-                  </ion-button>
-                  <ion-button v-if="score(ingredient.id) < 0" fill="clear" color="danger">
-                    <ion-icon
-                      slot="icon-only"
-                      :icon="closeCircleOutline"
-                    ></ion-icon>
-                  </ion-button>
-                  <ion-button v-if="score(ingredient.id) === 0" color="dark" fill="clear">
-                    <ion-icon
-                      slot="icon-only"
-                      :icon="ellipseOutline"
-                    ></ion-icon>
-                  </ion-button>
-                </ion-item>
-              </ion-list>
+              <Ingredients @rate="rateIngredient($event)" :ingredients="ingredients"></Ingredients>
             </div>
           </div>
         </ion-card-content>
@@ -121,12 +75,6 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { supabase } from "@/models/db";
 import { computed } from "vue";
-import {
-  helpCircleOutline,
-  checkmarkCircleOutline,
-  closeCircleOutline,
-  ellipseOutline,
-} from "ionicons/icons";
 import { Ingredient, Product } from "@/models/product";
 import {
   IonButton,
@@ -147,6 +95,8 @@ import {
   IonCardTitle,
 } from "@ionic/vue";
 import { translations as novaTranslations, colors as novaColors } from '@/models/nova'
+import { useIngredients } from "@/store/ingredients";
+import { storeToRefs } from "pinia";
 
 const getNovaTranslation = (novaGroup: number | undefined) => {
   if (novaGroup) {
@@ -169,7 +119,6 @@ const code = route.params.id;
 const imageFrontURL = ref<string>("");
 const name = ref<string>("");
 const ingredients = ref<Ingredient[]>([]);
-const ingredientsDb = ref<{ id: number; score: number; off_id: string }[]>([]);
 const isLoading = ref(true);
 
 const product = ref<Product>();
@@ -182,14 +131,6 @@ const rateIngredient = (ingredient: Ingredient) => {
   currentIngredient.value = ingredient
   showAskModal.value = true
 }
-
-const score = (productId: string, defaultValue: undefined | number = undefined) => {
-  const found = ingredientsDb.value.find(i => i.off_id === productId)
-  if (found) {
-    return found.score
-  }
-  return defaultValue;
-};
 
 const description = computed(() => {
   return product.value?.generic_name_fr ?? product.value?.generic_name ?? "";
@@ -207,6 +148,10 @@ const dismissAskModal = async (value: number) => {
   currentIngredient.value = undefined
   showAskModal.value = false
 };
+
+const ingredientStore = useIngredients()
+
+const { addIngredient } = ingredientStore
 
 onMounted(async () => {
   isLoading.value = true;
@@ -241,7 +186,12 @@ onMounted(async () => {
       );
     console.log("ingredientsDbValue", ingredientsDbValue);
     console.log("error", error);
-    ingredientsDb.value = ingredientsDbValue
+
+    if (ingredientsDbValue) {
+      for (const ingredient of ingredientsDbValue) {
+        addIngredient(ingredient)
+      }
+    }
   }
   isLoading.value = false;
 });
