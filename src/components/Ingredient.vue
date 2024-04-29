@@ -1,9 +1,9 @@
 <template>
-  <ion-item>
+  <ion-item class="item">
     <ion-label style="display: flex">
-      <div>{{ formatPercentage(ingredient.percent_estimate) }}</div>
+      <div class="percent"><b>{{ formatPercentage(ingredient.percent_estimate) }}</b></div>
       <div>&nbsp;</div>
-      <div>{{ ingredient.text }}</div>
+      <div v-html="text"></div>
     </ion-label>
     <ion-button
       @click="$emit('rate', ingredient)"
@@ -35,11 +35,26 @@
       <ion-icon slot="icon-only" :icon="ellipseOutline"></ion-icon>
     </ion-button>
   </ion-item>
+  <div class="sub-ingredients" v-if="subIngredients.length > 0">
+    <Ingredients @rate="emit('rate', $event)" :ingredients="subIngredients"></Ingredients>
+  </div>
 </template>
+
+<script lang="ts">
+export default {
+  name: "Ingredient"
+}
+</script>
 
 <script lang="ts" setup>
 import { Ingredient } from "@/models/product";
 import { PropType, computed, toRef, toRefs } from "vue";
+import {
+  IonButton,
+  IonIcon,
+  IonLabel,
+  IonItem,
+} from "@ionic/vue";
 import {
   helpCircleOutline,
   checkmarkCircleOutline,
@@ -48,6 +63,8 @@ import {
 } from "ionicons/icons";
 import { useIngredients } from "@/store/ingredients";
 import { storeToRefs } from "pinia";
+import Ingredients from '@/components/Ingredients.vue'
+import { micromark } from 'micromark'
 
 const ingredientStore = useIngredients();
 const { ingredientsDb } = storeToRefs(ingredientStore);
@@ -64,6 +81,14 @@ const emit = defineEmits<{
 }>();
 
 const { ingredient } = toRefs(props)
+
+const text = computed(() => {
+  return micromark(ingredient.value.text)
+})
+
+const subIngredients = computed(() => {
+  return ingredient.value?.ingredients ?? []
+})
 
 const score = computed(() => {
   const found = ingredientsDb.value.find((i) => i.off_id === ingredient.value.id);
@@ -95,3 +120,20 @@ const formatPercentage = (percentage: number) => {
   return formattedPercentage;
 };
 </script>
+
+<style scoped lang="scss">
+.item {
+  display: flex;
+}
+
+.sub-ingredients {
+  margin-left: 32px;
+}
+
+.percent {
+  margin-right: 8px;
+  font-size: 12px;
+  display: flex;
+  align-items: baseline;
+}
+</style>

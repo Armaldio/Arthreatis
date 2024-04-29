@@ -97,6 +97,7 @@ import {
 import { translations as novaTranslations, colors as novaColors } from '@/models/nova'
 import { useIngredients } from "@/store/ingredients";
 import { storeToRefs } from "pinia";
+import Ingredients from '@/components/Ingredients.vue'
 
 const getNovaTranslation = (novaGroup: number | undefined) => {
   if (novaGroup) {
@@ -118,7 +119,6 @@ const code = route.params.id;
 
 const imageFrontURL = ref<string>("");
 const name = ref<string>("");
-const ingredients = ref<Ingredient[]>([]);
 const isLoading = ref(true);
 
 const product = ref<Product>();
@@ -135,6 +135,10 @@ const rateIngredient = (ingredient: Ingredient) => {
 const description = computed(() => {
   return product.value?.generic_name_fr ?? product.value?.generic_name ?? "";
 });
+
+const ingredients = computed(() => {
+  return product.value?.ingredients ?? [];
+})
 
 const dismissAskModal = async (value: number) => {
   console.log('value', value)
@@ -174,7 +178,6 @@ onMounted(async () => {
     imageFrontURL.value = product.value?.image_front_url ?? "";
     name.value =
       product.value?.product_name_fr ?? product.value?.product_name ?? "";
-    ingredients.value = product.value?.ingredients ?? [];
 
     // fetch scores
     const { data: ingredientsDbValue, error } = await supabase

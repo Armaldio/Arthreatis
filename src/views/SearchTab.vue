@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonItem, IonList, IonSearchbar, SearchbarInputEventDetail } from '@ionic/vue';
+import { IonPage, IonItem, IonList, IonTitle, IonToolbar, IonHeader, IonThumbnail, IonContent, IonLabel, IonSearchbar, SearchbarInputEventDetail } from '@ionic/vue';
 import { IonSearchbarCustomEvent } from '@ionic/core';
 import { defineComponent, ref } from 'vue';
 

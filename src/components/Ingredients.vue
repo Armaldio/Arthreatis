@@ -9,9 +9,18 @@
   </ion-list>
 </template>
 
+<script lang="ts">
+export default {
+  name: "Ingredients"
+}
+</script>
+
 <script lang="ts" setup>
 import { Ingredient } from "@/models/product";
 import { PropType } from "vue";
+import {
+  IonList,
+} from "@ionic/vue";
 
 import IngredientVue from "./Ingredient.vue";
 
