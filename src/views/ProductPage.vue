@@ -12,34 +12,57 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-modal id="rate-modal" :is-open="showAskModal" @didDismiss="showAskModal = false">
+      <ion-modal
+        id="rate-modal"
+        :is-open="showAskModal"
+        @didDismiss="showAskModal = false"
+      >
         <div class="wrapper">
           <h1>Score</h1>
 
           <ion-list lines="none">
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(-2)">
+            <ion-item
+              :button="true"
+              :detail="false"
+              @click="dismissAskModal(-2)"
+            >
               <span slot="start">😖</span>
               <ion-label>Nocif</ion-label>
             </ion-item>
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(-1)">
+            <ion-item
+              :button="true"
+              :detail="false"
+              @click="dismissAskModal(-1)"
+            >
               <span slot="start">☹️</span>
               <ion-label>Négatif</ion-label>
             </ion-item>
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(0)">
+            <ion-item
+              :button="true"
+              :detail="false"
+              @click="dismissAskModal(0)"
+            >
               <span slot="start">😐</span>
               <ion-label>Sans impact</ion-label>
             </ion-item>
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(1)">
+            <ion-item
+              :button="true"
+              :detail="false"
+              @click="dismissAskModal(1)"
+            >
               <span slot="start">☺️</span>
               <ion-label>Positif</ion-label>
             </ion-item>
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(2)">
+            <ion-item
+              :button="true"
+              :detail="false"
+              @click="dismissAskModal(2)"
+            >
               <span slot="start">😁</span>
               <ion-label>Bénéfique</ion-label>
             </ion-item>
           </ion-list>
-          <div class="llm-suggestion" v-html="llmSuggestionMarkdown">
-          </div>
+          <div class="llm-suggestion" v-html="llmSuggestionMarkdown"></div>
         </div>
       </ion-modal>
 
@@ -56,14 +79,21 @@
           <div class="loading" v-if="isLoading">Chargement...</div>
           <div class="product" v-else>
             <div class="nova" v-if="getNovaTranslation(product.nova_group)">
-              <span :style="{ color: getNovaColors(product.nova_group) }">{{ getNovaTranslation(product.nova_group) }}</span>
+              <span :style="{ color: getNovaColors(product.nova_group) }">{{
+                getNovaTranslation(product.nova_group)
+              }}</span>
             </div>
             <div class="nutriscore" v-if="product.nutriscore_grade">
-              <span>Nutriscore {{ product.nutriscore_grade.toUpperCase() }}</span>
+              <span
+                >Nutriscore {{ product.nutriscore_grade.toUpperCase() }}</span
+              >
             </div>
             <div class="ingredients">
               <p>Ingrédients</p>
-              <Ingredients @rate="rateIngredient($event)" :ingredients="ingredients"></Ingredients>
+              <Ingredients
+                @rate="rateIngredient($event)"
+                :ingredients="ingredients"
+              ></Ingredients>
             </div>
           </div>
         </ion-card-content>
@@ -96,35 +126,38 @@ import {
   IonCard,
   IonCardTitle,
 } from "@ionic/vue";
-import { translations as novaTranslations, colors as novaColors } from '@/models/nova'
+import {
+  translations as novaTranslations,
+  colors as novaColors,
+} from "@/models/nova";
 import { useIngredients } from "@/store/ingredients";
 import { storeToRefs } from "pinia";
-import Ingredients from '@/components/Ingredients.vue'
-import { HfInference } from '@huggingface/inference';
-import { HuggingFaceStream, StreamingTextResponse } from 'ai';
-import { useCompletion } from 'ai/vue';
-import Groq from 'groq-sdk';
+import Ingredients from "@/components/Ingredients.vue";
+import { HfInference } from "@huggingface/inference";
+import { HuggingFaceStream, StreamingTextResponse, nanoid } from "ai";
+import { useCompletion } from "ai/vue";
+import Groq from "groq-sdk";
 import { micromark } from "micromark";
 
 const Hf = new HfInference(import.meta.env.VITE_HUGGINGFACE_API_KEY);
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
-  dangerouslyAllowBrowser: true
+  dangerouslyAllowBrowser: true,
 });
 
 const getNovaTranslation = (novaGroup: number | undefined) => {
   if (novaGroup) {
-    return novaTranslations[novaGroup]
+    return novaTranslations[novaGroup];
   }
-  return undefined
-}
+  return undefined;
+};
 
 const getNovaColors = (novaGroup: number | undefined) => {
   if (novaGroup) {
-    return novaColors[novaGroup]
+    return novaColors[novaGroup];
   }
-  return undefined
-}
+  return undefined;
+};
 
 const route = useRoute();
 
@@ -134,79 +167,112 @@ const imageFrontURL = ref<string>("");
 const name = ref<string>("");
 const isLoading = ref(true);
 
-const llmSuggestion = ref('')
+const llmSuggestion = ref("");
 
 const product = ref<Product>();
 
 const showAskModal = ref(false);
 
-const currentIngredient = ref<Ingredient>()
+const currentIngredient = ref<Ingredient>();
 
 const rateIngredient = async (ingredient: Ingredient) => {
-  currentIngredient.value = ingredient
-  llmSuggestion.value = ''
-  showAskModal.value = true
+  currentIngredient.value = ingredient;
+  llmSuggestion.value = "";
+  showAskModal.value = true;
 
   const chatCompletion = await groq.chat.completions.create({
-    "messages": [
+    messages: [
       {
-        "role": "system",
+        role: "system",
         // "content": "Act like a dietician. You specialize in rheumatoid arthritis.\nI will provide you with a list of ingredients and you will aim to rate them in order to determine their effects on the symptoms of the disease.\nChoose values between:\n- Harmful\n- Negative\n- No impact\n- Positive\n- Beneficial\n\nThe score given must take into account:\n- Reduction of inflammation\n- Pain reduction\n- Improved joint mobility\n- Reduction of fatigue\n\nGives a unique score per ingredient with a short comment (20 characters max) that explains this choice.\n\nHere is the first ingredient to rate: "
-        "content": "Agit comme un diététicien. Tu te spécialise dans la polyarthrite rhumatoïde. Je te fournirai une liste d'ingrédients et tu devra les évaluer afin de déterminer leurs effets sur les symptômes de la maladie. \NChoisis une valeurs entre : \n- Nocif \n- Négatif \n- Sans impact \n- Positif \n- Bénéfique \nLa note attribuée doit prendre en compte: \n- Réduction de l'inflammation \n- Réduction de la douleur \n- Amélioration de la mobilité des articulations \n- Réduction de la fatigue \nCela donne une note unique par ingrédient avec un court commentaire (20 caractères maximum) qui explique ce choix.\nVoici le premier ingrédient à noter: "
+        content:
+          "Agit comme un diététicien. Tu te spécialise dans la polyarthrite rhumatoïde. Je te fournirai une liste d'ingrédients et tu devra les évaluer afin de déterminer leurs effets sur les symptômes de la maladie. \NChoisis une valeurs entre : \n- Nocif \n- Négatif \n- Sans impact \n- Positif \n- Bénéfique \nLa note attribuée doit prendre en compte: \n- Réduction de l'inflammation \n- Réduction de la douleur \n- Amélioration de la mobilité des articulations \n- Réduction de la fatigue \nCela donne une note unique par ingrédient avec un court commentaire (20 caractères maximum) qui explique ce choix.\nVoici le premier ingrédient à noter: ",
       },
       {
-        "role": "user",
-        "content": currentIngredient.value.text
+        role: "user",
+        content: currentIngredient.value.text,
       },
     ],
-    "model": "llama3-70b-8192",
-    "temperature": 1,
-    "max_tokens": 1024,
-    "top_p": 1,
-    "stream": true,
-    "stop": null
+    model: "llama3-70b-8192",
+    temperature: 1,
+    max_tokens: 1024,
+    top_p: 1,
+    stream: true,
+    stop: null,
   });
 
   for await (const chunk of chatCompletion) {
-    const data = chunk.choices[0]?.delta?.content || ''
-    llmSuggestion.value += data
+    const data = chunk.choices[0]?.delta?.content || "";
+    llmSuggestion.value += data;
   }
-}
+};
 
 const llmSuggestionMarkdown = computed(() => {
-  return micromark(llmSuggestion.value)
-})
+  return micromark(llmSuggestion.value);
+});
 
 const description = computed(() => {
   return product.value?.generic_name_fr ?? product.value?.generic_name ?? "";
 });
 
+const extractIngredients = (item: { ingredients: Ingredient[] }) => {
+  const allIngredients: Ingredient[] = []
+
+  for (const itemIngredient of item.ingredients) {
+    allIngredients.push(...extractIngredients({
+      ingredients: [],
+      ...itemIngredient
+    }))
+  }
+
+  allIngredients.push(...item.ingredients)
+
+  return allIngredients
+}
+
+const allIngredients = computed(() => {
+  const extracted = extractIngredients(product.value ?? { ingredients: [] });
+  console.log('extracted', extracted)
+  return extracted.sort()
+});
+
 const ingredients = computed(() => {
-  return product.value?.ingredients ?? [];
-})
+  return product.value?.ingredients ?? []
+});
 
 const dismissAskModal = async (value: number) => {
-  console.log('value', value)
-  const { data, error } = await supabase
-    .from('ingredients')
-    .upsert({ off_id: currentIngredient.value.id, score: value })
-    .select()
-  console.log('data', data)
-  console.log('error', error)
+  const ingr = currentIngredient.value;
 
-  currentIngredient.value = undefined
-  showAskModal.value = false
+  if (ingr) {
+    console.log("value", value);
+
+    // add rating to db
+    const { data, error } = await supabase
+      .from("ingredients")
+      .upsert({ off_id: ingr.id, score: value })
+      .select();
+    console.log("data", data);
+    console.log("error", error);
+
+    for (const newIngr of data ?? []) {
+      addIngredient(newIngr)
+    }
+  }
+
+  currentIngredient.value = undefined;
+  showAskModal.value = false;
 };
 
-const ingredientStore = useIngredients()
+const ingredientStore = useIngredients();
 
-const { addIngredient } = ingredientStore
+const { addIngredient, setIngredient } = ingredientStore;
 
 onMounted(async () => {
   isLoading.value = true;
 
-  const { data: anonymouseSignInData, error } = await supabase.auth.signInAnonymously()
-  console.log('result', { anonymouseSignInData, error })
+  const { data: anonymouseSignInData, error } =
+    await supabase.auth.signInAnonymously();
+  console.log("result", { anonymouseSignInData, error });
 
   const dataRaw = await fetch(
     "https://world.openfoodfacts.net/api/v2/product/" +
@@ -230,14 +296,14 @@ onMounted(async () => {
       .select("*")
       .in(
         "off_id",
-        ingredients.value.map((i) => i.id)
+        allIngredients.value.map((i) => i.id)
       );
     console.log("ingredientsDbValue", ingredientsDbValue);
     console.log("error", error);
 
     if (ingredientsDbValue) {
       for (const ingredient of ingredientsDbValue) {
-        addIngredient(ingredient)
+        addIngredient(ingredient);
       }
     }
   }

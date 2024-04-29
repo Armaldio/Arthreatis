@@ -2,7 +2,7 @@ export interface Ingredient {
     id: string
     text: string
     percent_estimate: number
-    ingredients: Ingredient[]
+    ingredients?: Ingredient[]
 }
 
 export interface Product {

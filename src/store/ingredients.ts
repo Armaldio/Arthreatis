@@ -14,8 +14,16 @@ export const useIngredients = defineStore('ingredients', () => {
         ingredientsDb.value.push(ingredient)
     }
 
+    const setIngredient = (ingredient: IngredientDb) => {
+        const index = ingredientsDb.value.findIndex(item => item.id === ingredient.id);
+        if (index !== -1) {
+            ingredientsDb.value.splice(index, 1, ingredient);
+        }
+    }
+
     return {
         ingredientsDb: readonly(ingredientsDb),
         addIngredient,
+        setIngredient,
     }
 })
