@@ -12,14 +12,14 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-modal id="rate-modal" :is-open="showAskModal">
+      <ion-modal id="rate-modal" :is-open="showAskModal" @didDismiss="showAskModal = false">
         <div class="wrapper">
           <h1>Score</h1>
 
           <ion-list lines="none">
             <ion-item :button="true" :detail="false" @click="dismissAskModal(-2)">
               <span slot="start">😖</span>
-              <ion-label>Néfaste</ion-label>
+              <ion-label>Nocif</ion-label>
             </ion-item>
             <ion-item :button="true" :detail="false" @click="dismissAskModal(-1)">
               <span slot="start">☹️</span>
@@ -38,6 +38,8 @@
               <ion-label>Bénéfique</ion-label>
             </ion-item>
           </ion-list>
+          <div class="llm-suggestion" v-html="llmSuggestionMarkdown">
+          </div>
         </div>
       </ion-modal>
 
@@ -98,6 +100,17 @@ import { translations as novaTranslations, colors as novaColors } from '@/models
 import { useIngredients } from "@/store/ingredients";
 import { storeToRefs } from "pinia";
 import Ingredients from '@/components/Ingredients.vue'
+import { HfInference } from '@huggingface/inference';
+import { HuggingFaceStream, StreamingTextResponse } from 'ai';
+import { useCompletion } from 'ai/vue';
+import Groq from 'groq-sdk';
+import { micromark } from "micromark";
+
+const Hf = new HfInference(import.meta.env.VITE_HUGGINGFACE_API_KEY);
+const groq = new Groq({
+  apiKey: import.meta.env.VITE_GROQ_API_KEY,
+  dangerouslyAllowBrowser: true
+});
 
 const getNovaTranslation = (novaGroup: number | undefined) => {
   if (novaGroup) {
@@ -121,16 +134,48 @@ const imageFrontURL = ref<string>("");
 const name = ref<string>("");
 const isLoading = ref(true);
 
+const llmSuggestion = ref('')
+
 const product = ref<Product>();
 
 const showAskModal = ref(false);
 
 const currentIngredient = ref<Ingredient>()
 
-const rateIngredient = (ingredient: Ingredient) => {
+const rateIngredient = async (ingredient: Ingredient) => {
   currentIngredient.value = ingredient
+  llmSuggestion.value = ''
   showAskModal.value = true
+
+  const chatCompletion = await groq.chat.completions.create({
+    "messages": [
+      {
+        "role": "system",
+        // "content": "Act like a dietician. You specialize in rheumatoid arthritis.\nI will provide you with a list of ingredients and you will aim to rate them in order to determine their effects on the symptoms of the disease.\nChoose values between:\n- Harmful\n- Negative\n- No impact\n- Positive\n- Beneficial\n\nThe score given must take into account:\n- Reduction of inflammation\n- Pain reduction\n- Improved joint mobility\n- Reduction of fatigue\n\nGives a unique score per ingredient with a short comment (20 characters max) that explains this choice.\n\nHere is the first ingredient to rate: "
+        "content": "Agit comme un diététicien. Tu te spécialise dans la polyarthrite rhumatoïde. Je te fournirai une liste d'ingrédients et tu devra les évaluer afin de déterminer leurs effets sur les symptômes de la maladie. \NChoisis une valeurs entre : \n- Nocif \n- Négatif \n- Sans impact \n- Positif \n- Bénéfique \nLa note attribuée doit prendre en compte: \n- Réduction de l'inflammation \n- Réduction de la douleur \n- Amélioration de la mobilité des articulations \n- Réduction de la fatigue \nCela donne une note unique par ingrédient avec un court commentaire (20 caractères maximum) qui explique ce choix.\nVoici le premier ingrédient à noter: "
+      },
+      {
+        "role": "user",
+        "content": currentIngredient.value.text
+      },
+    ],
+    "model": "llama3-70b-8192",
+    "temperature": 1,
+    "max_tokens": 1024,
+    "top_p": 1,
+    "stream": true,
+    "stop": null
+  });
+
+  for await (const chunk of chatCompletion) {
+    const data = chunk.choices[0]?.delta?.content || ''
+    llmSuggestion.value += data
+  }
 }
+
+const llmSuggestionMarkdown = computed(() => {
+  return micromark(llmSuggestion.value)
+})
 
 const description = computed(() => {
   return product.value?.generic_name_fr ?? product.value?.generic_name ?? "";
@@ -226,5 +271,17 @@ ion-modal#rate-modal ion-icon {
 
 ion-modal#rate-modal .wrapper {
   margin-bottom: 10px;
+}
+
+.llm-suggestion {
+  max-width: 40vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 8px 16px;
+
+  p {
+    margin: 0 !important;
+  }
 }
 </style>
