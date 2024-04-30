@@ -15,4 +15,10 @@ export interface Product {
     nova_group: 1 | 2 | 3 | 4
     nutriscore_grade: string
     code: string
+    nutrient_levels: {
+        fat: string
+        'saturated-fat': string
+        sugars: string
+        salt: string
+    }
 }

@@ -50,6 +50,9 @@ importers:
       pinia:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.4.5)(vue@3.4.25(typescript@5.4.5))
+      progressbar.js:
+        specifier: ^1.1.1
+        version: 1.1.1
       vue:
         specifier: ^3.4.25
         version: 3.4.25(typescript@5.4.5)
@@ -60,6 +63,9 @@ importers:
         specifier: ^4.3.2
         version: 4.3.2(vue@3.4.25(typescript@5.4.5))
     devDependencies:
+      '@types/progressbar.js':
+        specifier: ^1.1.7
+        version: 1.1.7
       '@vitejs/plugin-legacy':
         specifier: ^5.3.2
         version: 5.3.2(terser@5.30.4)(vite@5.2.10(@types/node@14.18.33)(sass@1.75.0)(terser@5.30.4))
@@ -1193,6 +1199,9 @@ packages:
 
   '@types/phoenix@1.6.4':
     resolution: {integrity: sha512-B34A7uot1Cv0XtaHRYDATltAdKx0BvVKNgYNqE4WjtPUa4VQJM7kxeXcVKaH+KS+kCmZ+6w+QaUdcljiheiBJA==}
+
+  '@types/progressbar.js@1.1.7':
+    resolution: {integrity: sha512-ZdRMStiN7GC8uMsQ4dU2Scn0lzTUF4wZDe1+8X/IKYmjQ7lpHEVXKO5qEK12Z1TLJ9fo5+H351SyrxqtdZ/Zew==}
 
   '@types/semver@7.5.8':
     resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
@@ -3338,6 +3347,9 @@ packages:
     resolution: {integrity: sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==}
     engines: {node: '>= 0.6.0'}
 
+  progressbar.js@1.1.1:
+    resolution: {integrity: sha512-FBsw3BKsUbb+hNeYfiP3xzvAAQrPi4DnGDw66bCmfuRCDLcslxyxv2GyYUdBSKFGSIBa73CUP5WMcl6F8AAXlw==}
+
   promisepipe@3.0.0:
     resolution: {integrity: sha512-V6TbZDJ/ZswevgkDNpGt/YqNCiZP9ASfgU+p83uJE6NrGtvSGoOcHLiDCqkMs2+yg7F5qHdLV8d0aS8O26G/KA==}
 
@@ -3536,6 +3548,9 @@ packages:
   shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
+
+  shifty@2.20.4:
+    resolution: {integrity: sha512-4Y0qRkg8ME5XN8yGNAwmFOmsIURGFKT9UQfNL6DDJQErYtN5HsjyoBuJn41ZQfTkuu2rIbRMn9qazjKsDpO2TA==}
 
   side-channel@1.0.6:
     resolution: {integrity: sha512-fDW/EZ6Q9RiO8eFG8Hj+7u/oW+XrPTIChwCOM2+th2A6OblDtYYIpve9m+KvI9Z4C9qSEXlaGR6bTEYHReuglA==}
@@ -5360,6 +5375,8 @@ snapshots:
       undici-types: 5.26.5
 
   '@types/phoenix@1.6.4': {}
+
+  '@types/progressbar.js@1.1.7': {}
 
   '@types/semver@7.5.8': {}
 
@@ -7743,6 +7760,11 @@ snapshots:
 
   process@0.11.10: {}
 
+  progressbar.js@1.1.1:
+    dependencies:
+      lodash.merge: 4.6.2
+      shifty: 2.20.4
+
   promisepipe@3.0.0: {}
 
   proto-list@1.2.4: {}
@@ -7944,6 +7966,10 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
+
+  shifty@2.20.4:
+    optionalDependencies:
+      fsevents: 2.3.3
 
   side-channel@1.0.6:
     dependencies:

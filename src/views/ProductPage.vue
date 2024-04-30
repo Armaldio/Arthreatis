@@ -78,17 +78,42 @@
         <ion-card-content>
           <div class="loading" v-if="isLoading">Chargement...</div>
           <div class="product" v-else>
-            <div class="nova" v-if="getNovaTranslation(product.nova_group)">
-              <span :style="{ color: getNovaColors(product.nova_group) }">{{
-                getNovaTranslation(product.nova_group)
-              }}</span>
-            </div>
-            <div class="nutriscore" v-if="product.nutriscore_grade">
-              <span
-                >Nutriscore {{ product.nutriscore_grade.toUpperCase() }}</span
-              >
+            <div class="scores">
+              <div class="nova" v-if="getNovaTranslation(product.nova_group)">
+                <span> Nova </span>
+                <div class="nova" v-bind="novaProps" ref="$nova"></div>
+                <span>
+                  {{ getNovaTranslation(product.nova_group) }}
+                </span>
+              </div>
+              <div class="prScore" v-if="prScore">
+                <span> Score </span>
+                <div
+                  class="prScore"
+                  v-bind="prScoreProps"
+                  ref="$prScore"
+                ></div>
+                <span> . </span>
+              </div>
+              <div class="nutriscore" v-if="product.nutriscore_grade">
+                <span> Nutriscore </span>
+                <div
+                  class="nutriscore"
+                  v-bind="nutriscoreProps"
+                  ref="$nutriscore"
+                ></div>
+                <span> . </span>
+              </div>
             </div>
             <div class="ingredients">
+              <div>Reprères nutritionnels</div>
+              <div>Matiere grasse: {{ product.nutrient_levels.fat }}</div>
+              <div>
+                Acides gras saturés:
+                {{ product.nutrient_levels["saturated-fat"] }}
+              </div>
+              <div>Sucre: {{ product.nutrient_levels.sugars }}</div>
+              <div>Sel: {{ product.nutrient_levels.salt }}</div>
               <p>Ingrédients</p>
               <Ingredients
                 @rate="rateIngredient($event)"
@@ -103,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { Ref, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { supabase } from "@/models/db";
 import { computed } from "vue";
@@ -131,28 +156,28 @@ import {
   colors as novaColors,
 } from "@/models/nova";
 import { useIngredients } from "@/store/ingredients";
-import { storeToRefs } from "pinia";
 import Ingredients from "@/components/Ingredients.vue";
-import { HfInference } from "@huggingface/inference";
-import { HuggingFaceStream, StreamingTextResponse, nanoid } from "ai";
-import { useCompletion } from "ai/vue";
 import Groq from "groq-sdk";
 import { micromark } from "micromark";
+import ProgressBar from "progressbar.js";
 
-const Hf = new HfInference(import.meta.env.VITE_HUGGINGFACE_API_KEY);
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
   dangerouslyAllowBrowser: true,
 });
 
-const getNovaTranslation = (novaGroup: number | undefined) => {
+const getNovaTranslation = (
+  novaGroup: keyof typeof novaTranslations | undefined
+) => {
   if (novaGroup) {
     return novaTranslations[novaGroup];
   }
   return undefined;
 };
 
-const getNovaColors = (novaGroup: number | undefined) => {
+const getNovaColors = (
+  novaGroup: keyof typeof novaTranslations | undefined
+) => {
   if (novaGroup) {
     return novaColors[novaGroup];
   }
@@ -174,6 +199,142 @@ const product = ref<Product>();
 const showAskModal = ref(false);
 
 const currentIngredient = ref<Ingredient>();
+
+const $nutriscore = ref<HTMLDivElement>();
+const $nova = ref<HTMLDivElement>();
+const $prScore = ref<HTMLDivElement>();
+
+const createProgressBar = (
+  ref: Ref<HTMLDivElement | undefined>,
+  options: Ref<ProgressBar.PathDrawingOptions> | undefined = undefined
+) => {
+  watch(
+    ref,
+    (element) => {
+      if (element) {
+        var bar = new ProgressBar.Circle(element, options?.value);
+
+        bar.animate(1.0); // Number from 0.0 to 1.0
+      }
+    },
+    {
+      immediate: true,
+    }
+  );
+
+  const props = computed(() => {
+    return {
+      class: ["radial-progress"],
+    };
+  });
+
+  return {
+    modelValue: ref,
+    props,
+  };
+};
+
+const nutriscoreOptions = computed(
+  () =>
+    ({
+      color: "#aaa",
+      // This has to be the same size as the maximum width to
+      // prevent clipping
+      strokeWidth: 12,
+      trailWidth: 0,
+      easing: "easeInOut",
+      duration: 1400,
+      text: {
+        value: product.value?.nutriscore_grade.toUpperCase(),
+      },
+      from: { color: "#aaa" /* width: 1 */ },
+      to: { color: "#333" /* width: 4 */ },
+      // Set default step function for all animate calls
+      step: function (state, circle) {
+        // circle.path.setAttribute("stroke", state.color);
+        // circle.path.setAttribute("stroke-width", state.width);
+        // var value = Math.round(circle.value() * 100);
+        // if (value === 0) {
+        //   circle.setText("");
+        // } else {
+        //   circle.setText(value);
+        // }
+      },
+    } satisfies ProgressBar.PathDrawingOptions)
+);
+
+const { modelValue: nutriscoreEl, props: nutriscoreProps } = createProgressBar(
+  $nutriscore,
+  nutriscoreOptions
+);
+
+const novaOptions = computed(
+  () =>
+    ({
+      color: getNovaColors(product.value?.nova_group),
+      // This has to be the same size as the maximum width to
+      // prevent clipping
+      strokeWidth: 12,
+      trailWidth: 0,
+      easing: "easeInOut",
+      duration: 1400,
+      text: {
+        value: product.value?.nova_group.toString(),
+      },
+      from: { color: "#aaa" /* width: 1 */ },
+      to: { color: "#333" /* width: 4 */ },
+      // Set default step function for all animate calls
+      step: function (state, circle) {
+        // circle.path.setAttribute("stroke", state.color);
+        // circle.path.setAttribute("stroke-width", state.width);
+        // var value = Math.round(circle.value() * 100);
+        // if (value === 0) {
+        //   circle.setText("");
+        // } else {
+        //   circle.setText(value);
+        // }
+      },
+    } satisfies ProgressBar.PathDrawingOptions)
+);
+
+const { modelValue: novaEl, props: novaProps } = createProgressBar(
+  $nova,
+  novaOptions
+);
+
+const prScoreOptions = computed(
+  () =>
+    ({
+      color: 'red',
+      // This has to be the same size as the maximum width to
+      // prevent clipping
+      strokeWidth: 12,
+      trailWidth: 0,
+      easing: "easeInOut",
+      duration: 1400,
+      text: {
+        value: 'score',
+      },
+      from: { color: "#aaa" /* width: 1 */ },
+      to: { color: "#333" /* width: 4 */ },
+      // Set default step function for all animate calls
+      step: function (state, circle) {
+        // circle.path.setAttribute("stroke", state.color);
+        // circle.path.setAttribute("stroke-width", state.width);
+        // var value = Math.round(circle.value() * 100);
+        // if (value === 0) {
+        //   circle.setText("");
+        // } else {
+        //   circle.setText(value);
+        // }
+      },
+    } satisfies ProgressBar.PathDrawingOptions)
+);
+
+const { modelValue: prScoreEl, props: prScoreProps } = createProgressBar(
+  $prScore,
+  prScoreOptions
+);
 
 const rateIngredient = async (ingredient: Ingredient) => {
   currentIngredient.value = ingredient;
@@ -216,28 +377,30 @@ const description = computed(() => {
 });
 
 const extractIngredients = (item: { ingredients: Ingredient[] }) => {
-  const allIngredients: Ingredient[] = []
+  const allIngredients: Ingredient[] = [];
 
   for (const itemIngredient of item.ingredients) {
-    allIngredients.push(...extractIngredients({
-      ingredients: [],
-      ...itemIngredient
-    }))
+    allIngredients.push(
+      ...extractIngredients({
+        ingredients: [],
+        ...itemIngredient,
+      })
+    );
   }
 
-  allIngredients.push(...item.ingredients)
+  allIngredients.push(...item.ingredients);
 
-  return allIngredients
-}
+  return allIngredients;
+};
 
 const allIngredients = computed(() => {
   const extracted = extractIngredients(product.value ?? { ingredients: [] });
-  console.log('extracted', extracted)
-  return extracted.sort()
+  console.log("extracted", extracted);
+  return extracted.sort();
 });
 
 const ingredients = computed(() => {
-  return product.value?.ingredients ?? []
+  return product.value?.ingredients ?? [];
 });
 
 const dismissAskModal = async (value: number) => {
@@ -255,7 +418,7 @@ const dismissAskModal = async (value: number) => {
     console.log("error", error);
 
     for (const newIngr of data ?? []) {
-      addIngredient(newIngr)
+      addIngredient(newIngr);
     }
   }
 
@@ -266,6 +429,10 @@ const dismissAskModal = async (value: number) => {
 const ingredientStore = useIngredients();
 
 const { addIngredient, setIngredient } = ingredientStore;
+
+const prScore = computed(() => {
+  return 1
+})
 
 onMounted(async () => {
   isLoading.value = true;
@@ -348,6 +515,26 @@ ion-modal#rate-modal .wrapper {
 
   p {
     margin: 0 !important;
+  }
+}
+
+.radial-progress {
+  width: 48px;
+  height: 48px;
+}
+
+.scores {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+
+  .nova, .nutriscore, .prScore {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    text-align: center;
   }
 }
 </style>
