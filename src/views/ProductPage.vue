@@ -86,7 +86,7 @@
                   {{ getNovaTranslation(product.nova_group) }}
                 </span>
               </div>
-              <div class="prScore" v-if="prScore">
+              <div class="prScore">
                 <span> Score </span>
                 <div
                   class="prScore"
@@ -132,7 +132,7 @@ import { Ref, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { supabase } from "@/models/db";
 import { computed } from "vue";
-import { Ingredient, Product } from "@/models/product";
+import { Ingredient, IngredientBase, Product } from "@/models/product";
 import {
   IonButton,
   IonModal,
@@ -160,6 +160,7 @@ import Ingredients from "@/components/Ingredients.vue";
 import Groq from "groq-sdk";
 import { micromark } from "micromark";
 import ProgressBar from "progressbar.js";
+import { storeToRefs } from "pinia";
 
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
@@ -313,7 +314,7 @@ const prScoreOptions = computed(
       easing: "easeInOut",
       duration: 1400,
       text: {
-        value: 'score',
+        value: prScore.value?.toString() ?? '?',
       },
       from: { color: "#aaa" /* width: 1 */ },
       to: { color: "#333" /* width: 4 */ },
@@ -429,9 +430,48 @@ const dismissAskModal = async (value: number) => {
 const ingredientStore = useIngredients();
 
 const { addIngredient, setIngredient } = ingredientStore;
+const { ingredientsDb } = storeToRefs(ingredientStore);
 
-const prScore = computed(() => {
-  return 1
+/**
+ * If return is undefined: we ignore the score
+ */
+const getFinalIngredientScore = (ingredient: IngredientBase): number | undefined => {
+  const found = ingredientsDb.value.find((i) => i.off_id === ingredient.id);
+  if (found) {
+    return found.score === null ? undefined : found.score;
+  }
+  return undefined;
+}
+
+const getIngredientScore = (ingredient: IngredientBase): number | undefined => {
+  if ((ingredient.ingredients ?? []).length > 0) {
+    const scores: number[] = []
+    for (const ingredient of product.value?.ingredients ?? []) {
+      const ingredientScore = getIngredientScore(ingredient)
+      if (ingredientScore) {
+        scores.push(ingredientScore)
+      }
+      // else, ignore ingredient
+    }
+
+    const sum = scores.reduce((a, b) => a + b, 0);
+    const avg = (sum / scores.length) || 0;
+    return avg
+  } else {
+    return getFinalIngredientScore(ingredient)
+  }
+}
+
+// [-2, 2] => [0, 100]
+const mapRange = (x: number) => (x + 2) * 25;
+
+const prScore = computed<number | undefined>(() => {
+  const absoluteScore = product.value ? getIngredientScore(product.value) : undefined
+
+  if (absoluteScore) {
+    return mapRange(absoluteScore)
+  }
+  return undefined
 })
 
 onMounted(async () => {

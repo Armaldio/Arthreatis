@@ -1,11 +1,14 @@
-export interface Ingredient {
+export interface IngredientBase {
     id: string
-    text: string
-    percent_estimate: number
     ingredients?: Ingredient[]
 }
 
-export interface Product {
+export interface Ingredient extends IngredientBase {
+    text: string
+    percent_estimate: number
+}
+
+export interface Product extends IngredientBase {
     generic_name: string
     generic_name_fr: string
     image_front_url: string

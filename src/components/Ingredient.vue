@@ -5,35 +5,39 @@
       <div>&nbsp;</div>
       <div v-html="text"></div>
     </ion-label>
-    <ion-button
-      @click="$emit('rate', ingredient)"
-      fill="clear"
-      color="dark"
-      v-if="score === undefined || score === null"
-    >
-      <ion-icon slot="icon-only" :icon="helpCircleOutline"></ion-icon>
-    </ion-button>
-    <ion-button
-      v-else-if="score > 0"
-      fill="clear"
-      color="success"
-    >
-      <ion-icon slot="icon-only" :icon="checkmarkCircleOutline"></ion-icon>
-    </ion-button>
-    <ion-button
-      v-else-if="score < 0"
-      fill="clear"
-      color="danger"
-    >
-      <ion-icon slot="icon-only" :icon="closeCircleOutline"></ion-icon>
-    </ion-button>
-    <ion-button
-      v-else-if="score === 0"
-      color="dark"
-      fill="clear"
-    >
-      <ion-icon slot="icon-only" :icon="ellipseOutline"></ion-icon>
-    </ion-button>
+
+    <!-- Buttons -->
+    <template v-if="subIngredients.length === 0">
+      <ion-button
+        @click="$emit('rate', ingredient)"
+        fill="clear"
+        color="dark"
+        v-if="score === undefined || score === null"
+      >
+        <ion-icon slot="icon-only" :icon="helpCircleOutline"></ion-icon>
+      </ion-button>
+      <ion-button
+        v-else-if="score > 0"
+        fill="clear"
+        color="success"
+      >
+        <ion-icon slot="icon-only" :icon="checkmarkCircleOutline"></ion-icon>
+      </ion-button>
+      <ion-button
+        v-else-if="score < 0"
+        fill="clear"
+        color="danger"
+      >
+        <ion-icon slot="icon-only" :icon="closeCircleOutline"></ion-icon>
+      </ion-button>
+      <ion-button
+        v-else-if="score === 0"
+        color="dark"
+        fill="clear"
+      >
+        <ion-icon slot="icon-only" :icon="ellipseOutline"></ion-icon>
+      </ion-button>
+    </template>
   </ion-item>
   <div class="sub-ingredients" v-if="subIngredients.length > 0">
     <Ingredients @rate="emit('rate', $event)" :ingredients="subIngredients"></Ingredients>
