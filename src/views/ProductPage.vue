@@ -280,7 +280,7 @@ const prScoreOptions = computed(
     easing: "easeInOut",
     duration: 1400,
     text: {
-      value: prScore.value?.toString() ?? '?',
+      value: `${prScore.value?.toString()}%` ?? '?',
     },
     from: { color: "#aaa" /* width: 1 */ },
     to: { color: "#333" /* width: 4 */ },
@@ -437,7 +437,7 @@ const prScore = computed<number | undefined>(() => {
   const absoluteScore = product.value ? getIngredientScore(product.value) : undefined
 
   if (absoluteScore) {
-    return mapRange(absoluteScore)
+    return Math.round(mapRange(absoluteScore))
   }
   return undefined
 })
