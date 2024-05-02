@@ -55,7 +55,8 @@ const formats = [
   // "matrix_codes"
 ]
 
-const onDetect = (detectedCodes: Array<{ rawValue: string}>) => {
+const onDetect = (detectedCodes: Array<{ rawValue: string }>) => {
+  navigator.vibrate(200);
   console.log('detectedCodes', detectedCodes)
   const firstValue = detectedCodes[0]
   if (firstValue) {
