@@ -12,52 +12,28 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-modal
-        id="rate-modal"
-        :is-open="showAskModal"
-        @didDismiss="showAskModal = false"
-      >
+      <ion-modal id="rate-modal" :is-open="showAskModal" @didDismiss="showAskModal = false">
         <div class="wrapper">
           <h1>Score</h1>
 
           <ion-list lines="none">
-            <ion-item
-              :button="true"
-              :detail="false"
-              @click="dismissAskModal(-2)"
-            >
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(-2)">
               <span slot="start">😖</span>
               <ion-label>Nocif</ion-label>
             </ion-item>
-            <ion-item
-              :button="true"
-              :detail="false"
-              @click="dismissAskModal(-1)"
-            >
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(-1)">
               <span slot="start">☹️</span>
               <ion-label>Négatif</ion-label>
             </ion-item>
-            <ion-item
-              :button="true"
-              :detail="false"
-              @click="dismissAskModal(0)"
-            >
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(0)">
               <span slot="start">😐</span>
               <ion-label>Sans impact</ion-label>
             </ion-item>
-            <ion-item
-              :button="true"
-              :detail="false"
-              @click="dismissAskModal(1)"
-            >
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(1)">
               <span slot="start">☺️</span>
               <ion-label>Positif</ion-label>
             </ion-item>
-            <ion-item
-              :button="true"
-              :detail="false"
-              @click="dismissAskModal(2)"
-            >
+            <ion-item :button="true" :detail="false" @click="dismissAskModal(2)">
               <span slot="start">😁</span>
               <ion-label>Bénéfique</ion-label>
             </ion-item>
@@ -83,25 +59,18 @@
                 <span> Nova </span>
                 <div class="nova" v-bind="novaProps" ref="$nova"></div>
                 <span>
-                  {{ getNovaTranslation(product.nova_group) }}
+                  .
+                  <!-- {{ getNovaTranslation(product.nova_group) }} -->
                 </span>
               </div>
               <div class="prScore">
-                <span> Score </span>
-                <div
-                  class="prScore"
-                  v-bind="prScoreProps"
-                  ref="$prScore"
-                ></div>
+                <span> PR Score </span>
+                <div class="prScore" v-bind="prScoreProps" ref="$prScore"></div>
                 <span> . </span>
               </div>
               <div class="nutriscore" v-if="product.nutriscore_grade">
                 <span> Nutriscore </span>
-                <div
-                  class="nutriscore"
-                  v-bind="nutriscoreProps"
-                  ref="$nutriscore"
-                ></div>
+                <div class="nutriscore" v-bind="nutriscoreProps" ref="$nutriscore"></div>
                 <span> . </span>
               </div>
             </div>
@@ -115,10 +84,7 @@
               <div>Sucre: {{ product.nutrient_levels.sugars }}</div>
               <div>Sel: {{ product.nutrient_levels.salt }}</div>
               <p>Ingrédients</p>
-              <Ingredients
-                @rate="rateIngredient($event)"
-                :ingredients="ingredients"
-              ></Ingredients>
+              <Ingredients @rate="rateIngredient($event)" :ingredients="ingredients"></Ingredients>
             </div>
           </div>
         </ion-card-content>
@@ -237,31 +203,31 @@ const createProgressBar = (
 
 const nutriscoreOptions = computed(
   () =>
-    ({
-      color: "#aaa",
-      // This has to be the same size as the maximum width to
-      // prevent clipping
-      strokeWidth: 12,
-      trailWidth: 0,
-      easing: "easeInOut",
-      duration: 1400,
-      text: {
-        value: product.value?.nutriscore_grade.toUpperCase(),
-      },
-      from: { color: "#aaa" /* width: 1 */ },
-      to: { color: "#333" /* width: 4 */ },
-      // Set default step function for all animate calls
-      step: function (state, circle) {
-        // circle.path.setAttribute("stroke", state.color);
-        // circle.path.setAttribute("stroke-width", state.width);
-        // var value = Math.round(circle.value() * 100);
-        // if (value === 0) {
-        //   circle.setText("");
-        // } else {
-        //   circle.setText(value);
-        // }
-      },
-    } satisfies ProgressBar.PathDrawingOptions)
+  ({
+    color: "#aaa",
+    // This has to be the same size as the maximum width to
+    // prevent clipping
+    strokeWidth: 12,
+    trailWidth: 0,
+    easing: "easeInOut",
+    duration: 1400,
+    text: {
+      value: product.value?.nutriscore_grade.toUpperCase(),
+    },
+    from: { color: "#aaa" /* width: 1 */ },
+    to: { color: "#333" /* width: 4 */ },
+    // Set default step function for all animate calls
+    step: function (state, circle) {
+      // circle.path.setAttribute("stroke", state.color);
+      // circle.path.setAttribute("stroke-width", state.width);
+      // var value = Math.round(circle.value() * 100);
+      // if (value === 0) {
+      //   circle.setText("");
+      // } else {
+      //   circle.setText(value);
+      // }
+    },
+  } satisfies ProgressBar.PathDrawingOptions)
 );
 
 const { modelValue: nutriscoreEl, props: nutriscoreProps } = createProgressBar(
@@ -271,31 +237,31 @@ const { modelValue: nutriscoreEl, props: nutriscoreProps } = createProgressBar(
 
 const novaOptions = computed(
   () =>
-    ({
-      color: getNovaColors(product.value?.nova_group),
-      // This has to be the same size as the maximum width to
-      // prevent clipping
-      strokeWidth: 12,
-      trailWidth: 0,
-      easing: "easeInOut",
-      duration: 1400,
-      text: {
-        value: product.value?.nova_group.toString(),
-      },
-      from: { color: "#aaa" /* width: 1 */ },
-      to: { color: "#333" /* width: 4 */ },
-      // Set default step function for all animate calls
-      step: function (state, circle) {
-        // circle.path.setAttribute("stroke", state.color);
-        // circle.path.setAttribute("stroke-width", state.width);
-        // var value = Math.round(circle.value() * 100);
-        // if (value === 0) {
-        //   circle.setText("");
-        // } else {
-        //   circle.setText(value);
-        // }
-      },
-    } satisfies ProgressBar.PathDrawingOptions)
+  ({
+    color: getNovaColors(product.value?.nova_group),
+    // This has to be the same size as the maximum width to
+    // prevent clipping
+    strokeWidth: 12,
+    trailWidth: 0,
+    easing: "easeInOut",
+    duration: 1400,
+    text: {
+      value: product.value?.nova_group.toString(),
+    },
+    from: { color: "#aaa" /* width: 1 */ },
+    to: { color: "#333" /* width: 4 */ },
+    // Set default step function for all animate calls
+    step: function (state, circle) {
+      // circle.path.setAttribute("stroke", state.color);
+      // circle.path.setAttribute("stroke-width", state.width);
+      // var value = Math.round(circle.value() * 100);
+      // if (value === 0) {
+      //   circle.setText("");
+      // } else {
+      //   circle.setText(value);
+      // }
+    },
+  } satisfies ProgressBar.PathDrawingOptions)
 );
 
 const { modelValue: novaEl, props: novaProps } = createProgressBar(
@@ -305,31 +271,31 @@ const { modelValue: novaEl, props: novaProps } = createProgressBar(
 
 const prScoreOptions = computed(
   () =>
-    ({
-      color: 'red',
-      // This has to be the same size as the maximum width to
-      // prevent clipping
-      strokeWidth: 12,
-      trailWidth: 0,
-      easing: "easeInOut",
-      duration: 1400,
-      text: {
-        value: prScore.value?.toString() ?? '?',
-      },
-      from: { color: "#aaa" /* width: 1 */ },
-      to: { color: "#333" /* width: 4 */ },
-      // Set default step function for all animate calls
-      step: function (state, circle) {
-        // circle.path.setAttribute("stroke", state.color);
-        // circle.path.setAttribute("stroke-width", state.width);
-        // var value = Math.round(circle.value() * 100);
-        // if (value === 0) {
-        //   circle.setText("");
-        // } else {
-        //   circle.setText(value);
-        // }
-      },
-    } satisfies ProgressBar.PathDrawingOptions)
+  ({
+    color: 'red',
+    // This has to be the same size as the maximum width to
+    // prevent clipping
+    strokeWidth: 12,
+    trailWidth: 0,
+    easing: "easeInOut",
+    duration: 1400,
+    text: {
+      value: prScore.value?.toString() ?? '?',
+    },
+    from: { color: "#aaa" /* width: 1 */ },
+    to: { color: "#333" /* width: 4 */ },
+    // Set default step function for all animate calls
+    step: function (state, circle) {
+      // circle.path.setAttribute("stroke", state.color);
+      // circle.path.setAttribute("stroke-width", state.width);
+      // var value = Math.round(circle.value() * 100);
+      // if (value === 0) {
+      //   circle.setText("");
+      // } else {
+      //   circle.setText(value);
+      // }
+    },
+  } satisfies ProgressBar.PathDrawingOptions)
 );
 
 const { modelValue: prScoreEl, props: prScoreProps } = createProgressBar(
@@ -444,10 +410,12 @@ const getFinalIngredientScore = (ingredient: IngredientBase): number | undefined
 }
 
 const getIngredientScore = (ingredient: IngredientBase): number | undefined => {
+  console.log('element', ingredient)
   if ((ingredient.ingredients ?? []).length > 0) {
     const scores: number[] = []
-    for (const ingredient of product.value?.ingredients ?? []) {
-      const ingredientScore = getIngredientScore(ingredient)
+    for (const subingredient of ingredient.ingredients ?? []) {
+      console.log('Analyzing', subingredient)
+      const ingredientScore = getIngredientScore(subingredient)
       if (ingredientScore) {
         scores.push(ingredientScore)
       }
@@ -483,8 +451,8 @@ onMounted(async () => {
 
   const dataRaw = await fetch(
     "https://fr.openfoodfacts.net/api/v2/product/" +
-      code +
-      "?cc=fr&lc=fr&tags_lc=fr"
+    code +
+    "?cc=fr&lc=fr&tags_lc=fr"
   );
   const data = await dataRaw.json();
 
@@ -568,7 +536,9 @@ ion-modal#rate-modal .wrapper {
   flex-direction: row;
   justify-content: space-around;
 
-  .nova, .nutriscore, .prScore {
+  .nova,
+  .nutriscore,
+  .prScore {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -576,5 +546,9 @@ ion-modal#rate-modal .wrapper {
     flex: 1;
     text-align: center;
   }
+}
+
+.ingredients {
+  margin-top: 16px;
 }
 </style>
