@@ -1,7 +1,9 @@
 <template>
   <ion-item class="item">
     <ion-label style="display: flex">
-      <div class="percent"><b>{{ formatPercentage(ingredient.percent_estimate) }}</b></div>
+      <div class="percent">
+        <b>{{ formatPercentage(ingredient.percent_estimate) }}</b>
+      </div>
       <div>&nbsp;</div>
       <div v-html="text"></div>
     </ion-label>
@@ -17,6 +19,7 @@
         <ion-icon slot="icon-only" :icon="helpCircleOutline"></ion-icon>
       </ion-button>
       <ion-button
+        @click="$emit('rate', ingredient)"
         v-else-if="score > 0"
         fill="clear"
         color="success"
@@ -24,6 +27,7 @@
         <ion-icon slot="icon-only" :icon="checkmarkCircleOutline"></ion-icon>
       </ion-button>
       <ion-button
+        @click="$emit('rate', ingredient)"
         v-else-if="score < 0"
         fill="clear"
         color="danger"
@@ -31,6 +35,7 @@
         <ion-icon slot="icon-only" :icon="closeCircleOutline"></ion-icon>
       </ion-button>
       <ion-button
+        @click="$emit('rate', ingredient)"
         v-else-if="score === 0"
         color="dark"
         fill="clear"
@@ -40,25 +45,23 @@
     </template>
   </ion-item>
   <div class="sub-ingredients" v-if="subIngredients.length > 0">
-    <Ingredients @rate="emit('rate', $event)" :ingredients="subIngredients"></Ingredients>
+    <Ingredients
+      @rate="emit('rate', $event)"
+      :ingredients="subIngredients"
+    ></Ingredients>
   </div>
 </template>
 
 <script lang="ts">
 export default {
-  name: "Ingredient"
-}
+  name: "Ingredient",
+};
 </script>
 
 <script lang="ts" setup>
 import { Ingredient } from "@/models/product";
 import { PropType, computed, toRef, toRefs } from "vue";
-import {
-  IonButton,
-  IonIcon,
-  IonLabel,
-  IonItem,
-} from "@ionic/vue";
+import { IonButton, IonIcon, IonLabel, IonItem } from "@ionic/vue";
 import {
   helpCircleOutline,
   checkmarkCircleOutline,
@@ -67,8 +70,8 @@ import {
 } from "ionicons/icons";
 import { useIngredients } from "@/store/ingredients";
 import { storeToRefs } from "pinia";
-import Ingredients from '@/components/Ingredients.vue'
-import { micromark } from 'micromark'
+import Ingredients from "@/components/Ingredients.vue";
+import { micromark } from "micromark";
 
 const ingredientStore = useIngredients();
 const { ingredientsDb } = storeToRefs(ingredientStore);
@@ -84,23 +87,25 @@ const emit = defineEmits<{
   (event: "rate", ingredient: Ingredient): void;
 }>();
 
-const { ingredient } = toRefs(props)
+const { ingredient } = toRefs(props);
 
 const text = computed(() => {
-  return micromark(ingredient.value.text)
-})
+  return micromark(ingredient.value.text);
+});
 
 const subIngredients = computed(() => {
-  return ingredient.value?.ingredients ?? []
-})
+  return ingredient.value?.ingredients ?? [];
+});
 
 const score = computed(() => {
-  const found = ingredientsDb.value.find((i) => i.off_id === ingredient.value.id);
+  const found = ingredientsDb.value.find(
+    (i) => i.off_id === ingredient.value.id
+  );
   if (found) {
     return found.score;
   }
   return undefined;
-})
+});
 
 const formatPercentage = (percentage: number) => {
   // Convert the percentage to a number
