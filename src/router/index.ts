@@ -17,7 +17,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'scan',
-        component: () => import('@/views/Tab1Page.vue')
+        component: () => import('@/views/Scan.vue')
       },
       {
         path: 'search',
@@ -25,9 +25,14 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'settings',
-        component: () => import('@/views/Tab3Page.vue')
+        component: () => import('@/views/Settings.vue')
       }
     ]
+  },
+  {
+    path: '/history',
+    name: 'History',
+    component: () => import('@/views/History.vue')
   },
   {
     path: '/product/:id',

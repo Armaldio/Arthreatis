@@ -127,6 +127,7 @@ import Groq from "groq-sdk";
 import { micromark } from "micromark";
 import ProgressBar from "progressbar.js";
 import { storeToRefs } from "pinia";
+import { useHistory } from "@/store/history";
 
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
@@ -362,7 +363,7 @@ const getColorFromValue = (value: number): string => {
 }
 
 const prScoreColor = computed(() => {
-  return getColorFromValue(prScore.value)
+  return prScore.value ? getColorFromValue(prScore.value) : 'grey'
 })
 
 const extractIngredients = (item: { ingredients: Ingredient[] }) => {
@@ -464,6 +465,10 @@ const prScore = computed<number | undefined>(() => {
   return undefined
 })
 
+const historyStore = useHistory()
+console.log('historyStore', historyStore)
+const { addHistoryEntry } = historyStore
+
 onMounted(async () => {
   isLoading.value = true;
 
@@ -476,7 +481,7 @@ onMounted(async () => {
     code +
     "?cc=fr&lc=fr&tags_lc=fr"
   );
-  const data = await dataRaw.json();
+  const data = await dataRaw.json() as { status: 1 | 0; product: Product };
 
   console.log("data", data);
 
@@ -486,6 +491,12 @@ onMounted(async () => {
     imageFrontURL.value = product.value?.image_front_url ?? "";
     name.value =
       product.value?.product_name_fr ?? product.value?.product_name ?? "";
+
+    addHistoryEntry({
+      lastOpenDate: new Date(),
+      code: data.product.code,
+      name: name.value
+    })
 
     // fetch scores
     const { data: ingredientsDbValue, error } = await supabase

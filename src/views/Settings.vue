@@ -12,7 +12,7 @@
         </ion-toolbar>
       </ion-header>
 
-      <p>Settings go here</p>
+      <ion-button href="/history">Historique</ion-button>
     </ion-content>
   </ion-page>
 </template>
