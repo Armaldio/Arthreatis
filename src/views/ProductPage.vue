@@ -272,7 +272,7 @@ const { modelValue: novaEl, props: novaProps } = createProgressBar(
 const prScoreOptions = computed(
   () =>
   ({
-    color: 'red',
+    color: prScoreColor.value,
     // This has to be the same size as the maximum width to
     // prevent clipping
     strokeWidth: 12,
@@ -342,6 +342,28 @@ const llmSuggestionMarkdown = computed(() => {
 const description = computed(() => {
   return product.value?.generic_name_fr ?? product.value?.generic_name ?? "";
 });
+
+const getColorFromValue = (value: number): string => {
+  // Validate input
+  if (value < 0 || value > 100) {
+    throw new Error('Input value must be between 0 and 100');
+  }
+
+  // Calculate the red and green components based on the input value
+  const red = Math.round(255 * (100 - value) / 100);
+  const green = Math.round(255 * value / 100);
+
+  // Convert the red and green components to hexadecimal strings
+  const redHex = red.toString(16).padStart(2, '0');
+  const greenHex = green.toString(16).padStart(2, '0');
+
+  // Return the color as a hexadecimal string
+  return `#${redHex}${greenHex}00`;
+}
+
+const prScoreColor = computed(() => {
+  return getColorFromValue(prScore.value)
+})
 
 const extractIngredients = (item: { ingredients: Ingredient[] }) => {
   const allIngredients: Ingredient[] = [];
