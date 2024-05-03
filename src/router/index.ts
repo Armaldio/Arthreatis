@@ -5,6 +5,7 @@ import TabsPage from '../views/TabsPage.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
+    name: 'Root',
     redirect: '/tabs/scan'
   },
   {
@@ -26,13 +27,18 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'settings',
         component: () => import('@/views/Settings.vue')
-      }
+      },
+      {
+        path: 'settings/history',
+        name: 'History',
+        component: () => import('@/views/History.vue')
+      },
+      {
+        path: 'settings/history/product/:id',
+        name: 'HistoryProduct',
+        component: () => import('@/views/ProductPage.vue')
+      },
     ]
-  },
-  {
-    path: '/history',
-    name: 'History',
-    component: () => import('@/views/History.vue')
   },
   {
     path: '/product/:id',

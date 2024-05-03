@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, onMounted, ref, watch } from "vue";
+import { Ref, onMounted, ref, shallowRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { supabase } from "@/models/db";
 import { computed } from "vue";
@@ -114,6 +114,8 @@ import {
   IonCardContent,
   IonPage,
   IonIcon,
+  IonBackButton,
+  IonButtons,
   IonLabel,
   IonItem,
   IonList,
@@ -177,15 +179,17 @@ const $prScore = ref<HTMLDivElement>();
 
 const createProgressBar = (
   ref: Ref<HTMLDivElement | undefined>,
+  value: number,
   options: Ref<ProgressBar.PathDrawingOptions> | undefined = undefined
 ) => {
+  const bar = shallowRef<InstanceType<typeof ProgressBar.Circle>>()
   watch(
     ref,
     (element) => {
       if (element) {
-        var bar = new ProgressBar.Circle(element, options?.value);
+        bar.value = new ProgressBar.Circle(element, options?.value);
 
-        bar.animate(1.0); // Number from 0.0 to 1.0
+        bar.value?.animate(value); // Number from 0.0 to 1.0
       }
     },
     {
@@ -202,6 +206,7 @@ const createProgressBar = (
   return {
     modelValue: ref,
     props,
+    bar,
   };
 };
 
@@ -236,6 +241,7 @@ const nutriscoreOptions = computed(
 
 const { modelValue: nutriscoreEl, props: nutriscoreProps } = createProgressBar(
   $nutriscore,
+  1,
   nutriscoreOptions
 );
 
@@ -270,6 +276,7 @@ const novaOptions = computed(
 
 const { modelValue: novaEl, props: novaProps } = createProgressBar(
   $nova,
+  1,
   novaOptions
 );
 
@@ -300,11 +307,6 @@ const prScoreOptions = computed(
       // }
     },
   } satisfies ProgressBar.PathDrawingOptions)
-);
-
-const { modelValue: prScoreEl, props: prScoreProps } = createProgressBar(
-  $prScore,
-  prScoreOptions
 );
 
 const rateIngredient = async (ingredient: Ingredient) => {
@@ -436,11 +438,9 @@ const getFinalIngredientScore = (ingredient: IngredientBase): number | undefined
 }
 
 const getIngredientScore = (ingredient: IngredientBase): number | undefined => {
-  console.log('element', ingredient)
   if ((ingredient.ingredients ?? []).length > 0) {
     const scores: number[] = []
     for (const subingredient of ingredient.ingredients ?? []) {
-      console.log('Analyzing', subingredient)
       const ingredientScore = getIngredientScore(subingredient)
       if (ingredientScore) {
         scores.push(ingredientScore)
@@ -466,6 +466,19 @@ const prScore = computed<number | undefined>(() => {
     return Math.round(mapRange(absoluteScore))
   }
   return undefined
+})
+
+const { modelValue: prScoreEl, props: prScoreProps, bar: prBar } = createProgressBar(
+  $prScore,
+  (prScore.value ?? 100) / 100,
+  prScoreOptions
+);
+
+watch(prScore, () => {
+  if (prBar.value) {
+    prBar.value.setText(prScore.value?.toString() ?? '?')
+    prBar.value.animate((prScore.value ?? 100) / 100)
+  }
 })
 
 const historyStore = useHistory()

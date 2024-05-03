@@ -2,6 +2,9 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-back-button></ion-back-button>
+        </ion-buttons>
         <ion-title>History</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -12,9 +15,9 @@
         </ion-toolbar>
       </ion-header>
 
-      <a v-for="item in history" :href="`/product/${item.code}`">
+      <ion-button class="link" v-for="item in history" :router-link="{ name: 'HistoryProduct', params: { id: item.code }}">
         {{ item.name }}
-      </a>
+      </ion-button>
     </ion-content>
   </ion-page>
 </template>
@@ -25,6 +28,9 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
+  IonButtons,
+  IonBackButton,
+  IonButton,
   IonContent,
 } from "@ionic/vue";
 import { storeToRefs } from 'pinia'
@@ -35,3 +41,11 @@ const historyStore = useHistory()
 
 const { history } = storeToRefs(historyStore)
 </script>
+
+
+<style scoped lang="scss">
+.link {
+  display: block;
+  margin: 8px 16px;
+}
+</style>
