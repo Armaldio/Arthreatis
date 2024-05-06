@@ -493,7 +493,7 @@ onMounted(async () => {
   console.log("result", { anonymouseSignInData, error });
 
   const dataRaw = await fetch(
-    "https://fr.openfoodfacts.net/api/v2/product/" +
+    "https://fr.openfoodfacts.org/api/v2/product/" +
     code +
     "?cc=fr&lc=fr&tags_lc=fr"
   );
