@@ -15,30 +15,35 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-modal id="rate-modal" :is-open="showAskModal" @didDismiss="showAskModal = false">
+      <ion-modal id="rate-modal" :is-open="showAskModal" @didDismiss="onDidDismiss">
         <div class="wrapper">
           <h1>Score</h1>
 
           <ion-list lines="none">
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(-2)">
+            <ion-item class="rate-item" :color="llmScore === -2 ? 'primary' : ''" :button="true" :detail="false" @click="dismissAskModal(-2)">
               <span slot="start">😖</span>
               <ion-label>Nocif</ion-label>
+              <ion-icon size="small" v-if="llmScore === -2" :icon="sparklesSharp" slot="end"></ion-icon>
             </ion-item>
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(-1)">
+            <ion-item class="rate-item" :color="llmScore === -1 ? 'primary' : ''" :button="true" :detail="false" @click="dismissAskModal(-1)">
               <span slot="start">☹️</span>
               <ion-label>Négatif</ion-label>
+              <ion-icon size="small" v-if="llmScore === -1" :icon="sparklesSharp" slot="end"></ion-icon>
             </ion-item>
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(0)">
+            <ion-item class="rate-item" :color="llmScore === 0 ? 'primary' : ''" :button="true" :detail="false" @click="dismissAskModal(0)">
               <span slot="start">😐</span>
               <ion-label>Sans impact</ion-label>
+              <ion-icon size="small" v-if="llmScore === 0" :icon="sparklesSharp" slot="end"></ion-icon>
             </ion-item>
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(1)">
+            <ion-item class="rate-item" :color="llmScore === 1 ? 'primary' : ''" :button="true" :detail="false" @click="dismissAskModal(1)">
               <span slot="start">☺️</span>
               <ion-label>Positif</ion-label>
+              <ion-icon size="small" v-if="llmScore === 1" :icon="sparklesSharp" slot="end"></ion-icon>
             </ion-item>
-            <ion-item :button="true" :detail="false" @click="dismissAskModal(2)">
+            <ion-item class="rate-item" :color="llmScore === 2 ? 'primary' : ''" :button="true" :detail="false" @click="dismissAskModal(2)">
               <span slot="start">😁</span>
               <ion-label>Bénéfique</ion-label>
+              <ion-icon size="small" v-if="llmScore === 2" :icon="sparklesSharp" slot="end"></ion-icon>
             </ion-item>
           </ion-list>
           <div class="llm-suggestion" v-html="llmSuggestionMarkdown"></div>
@@ -133,6 +138,7 @@ import { micromark } from "micromark";
 import ProgressBar from "progressbar.js";
 import { storeToRefs } from "pinia";
 import { useHistory } from "@/store/history";
+import { sparklesSharp } from 'ionicons/icons'
 
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
@@ -165,7 +171,8 @@ const imageFrontURL = ref<string>("");
 const name = ref<string>("");
 const isLoading = ref(true);
 
-const llmSuggestion = ref("");
+const llmComment = ref("");
+const llmScore = ref<number | undefined>(undefined);
 
 const product = ref<Product>();
 
@@ -311,8 +318,27 @@ const prScoreOptions = computed(
 
 const rateIngredient = async (ingredient: Ingredient) => {
   currentIngredient.value = ingredient;
-  llmSuggestion.value = "";
+  llmComment.value = "";
   showAskModal.value = true;
+
+  const json = JSON.stringify({
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Generated schema for Root",
+    "type": "object",
+    "properties": {
+      "suggestedValue": {
+        "type": "integer",
+        "enum": [-2, -1, 0, 1, 2]
+      },
+      "comment": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "suggestedValue",
+      "comment"
+    ]
+  });
 
   const chatCompletion = await groq.chat.completions.create({
     messages: [
@@ -320,7 +346,7 @@ const rateIngredient = async (ingredient: Ingredient) => {
         role: "system",
         // "content": "Act like a dietician. You specialize in rheumatoid arthritis.\nI will provide you with a list of ingredients and you will aim to rate them in order to determine their effects on the symptoms of the disease.\nChoose values between:\n- Harmful\n- Negative\n- No impact\n- Positive\n- Beneficial\n\nThe score given must take into account:\n- Reduction of inflammation\n- Pain reduction\n- Improved joint mobility\n- Reduction of fatigue\n\nGives a unique score per ingredient with a short comment (20 characters max) that explains this choice.\n\nHere is the first ingredient to rate: "
         content:
-          "Agit comme un diététicien. Tu te spécialise dans la polyarthrite rhumatoïde. Je te fournirai une liste d'ingrédients et tu devra les évaluer afin de déterminer leurs effets sur les symptômes de la maladie. \NChoisis une valeurs entre : \n- Nocif \n- Négatif \n- Sans impact \n- Positif \n- Bénéfique \nLa note attribuée doit prendre en compte: \n- Réduction de l'inflammation \n- Réduction de la douleur \n- Amélioration de la mobilité des articulations \n- Réduction de la fatigue \nCela donne une note unique par ingrédient avec un court commentaire (20 caractères maximum) qui explique ce choix.\nVoici le premier ingrédient à noter: ",
+          `Tu agit comme un diététicien spécialisé dans la polyarthrite rhumatoïde. Je te fournis un ingrédient et tu dois l'évaluer afin de déterminer ses effets sur les symptômes de la maladie. \NChoisis une valeurs entre : \n- Nocif: -2 \n- Négatif: -1 \n- Sans impact: 0 \n- Positif: 1 \n- Bénéfique: 2 \nLa note attribuée doit prendre en compte: \n- Réduction de l'inflammation \n- Réduction de la douleur \n- Amélioration de la mobilité des articulations \n- Réduction de la fatigue \nCela donne une note unique par ingrédient avec un court commentaire qui explique ce choix.\nLe JSON à suivre est le suivant: ${json}\nVoici le premier ingrédient à noter: `,
       },
       {
         role: "user",
@@ -331,23 +357,37 @@ const rateIngredient = async (ingredient: Ingredient) => {
     temperature: 1,
     max_tokens: 1024,
     top_p: 1,
-    stream: true,
+    stream: false,
+    response_format: {
+        type: "json_object"
+    },
     stop: null,
   });
 
-  for await (const chunk of chatCompletion) {
-    const data = chunk.choices[0]?.delta?.content || "";
-    llmSuggestion.value += data;
+  const result = JSON.parse(chatCompletion.choices[0].message.content) as {
+    suggestedValue: number
+    comment: string
   }
+
+  console.log('result', result)
+  
+  llmComment.value = result.comment;
+  llmScore.value = result.suggestedValue;
 };
 
 const llmSuggestionMarkdown = computed(() => {
-  return micromark(llmSuggestion.value);
+  return micromark(llmComment.value);
 });
 
 const description = computed(() => {
   return product.value?.generic_name_fr ?? product.value?.generic_name ?? "";
 });
+
+const onDidDismiss = () => {
+  showAskModal.value = false
+  llmScore.value = undefined;
+  llmComment.value = "";
+}
 
 const getColorFromValue = (value: number): string => {
   // Validate input
@@ -440,14 +480,18 @@ const getFinalIngredientScore = (ingredient: IngredientBase): number | undefined
 const getIngredientScore = (ingredient: IngredientBase): number | undefined => {
   if ((ingredient.ingredients ?? []).length > 0) {
     const scores: number[] = []
+    const rawScores: number[] = []
     for (const subingredient of ingredient.ingredients ?? []) {
       const ingredientScore = getIngredientScore(subingredient)
       if (ingredientScore) {
-        scores.push(ingredientScore)
+        scores.push(ingredientScore  * (subingredient.percent_estimate / 100))
+        rawScores.push(ingredientScore)
       }
       // else, ignore ingredient
     }
 
+    console.log('scores', scores)
+    console.log('rawScores', rawScores)
     const sum = scores.reduce((a, b) => a + b, 0);
     const avg = (sum / scores.length) || 0;
     return avg
@@ -561,6 +605,19 @@ ion-modal#rate-modal ion-icon {
 
 ion-modal#rate-modal .wrapper {
   margin-bottom: 10px;
+}
+
+ion-modal#rate-modal ion-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  color: yellow;
+}
+
+.rate-item {
+  &.highlight {
+    background-color: #aaa;
+  }
 }
 
 .llm-suggestion {

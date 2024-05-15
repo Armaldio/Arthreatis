@@ -20,19 +20,19 @@
       </ion-button>
       <ion-button
         @click="$emit('rate', ingredient)"
-        v-else-if="score > 0"
+        v-else-if="score === 2"
         fill="clear"
         color="success"
       >
-        <ion-icon slot="icon-only" :icon="checkmarkCircleOutline"></ion-icon>
+        <ion-icon slot="icon-only" :icon="thumbsUpSharp"></ion-icon>
       </ion-button>
       <ion-button
         @click="$emit('rate', ingredient)"
-        v-else-if="score < 0"
+        v-else-if="score === 1"
         fill="clear"
         color="danger"
       >
-        <ion-icon slot="icon-only" :icon="closeCircleOutline"></ion-icon>
+        <ion-icon slot="icon-only" :icon="thumbsUpOutline"></ion-icon>
       </ion-button>
       <ion-button
         @click="$emit('rate', ingredient)"
@@ -40,7 +40,23 @@
         color="dark"
         fill="clear"
       >
-        <ion-icon slot="icon-only" :icon="ellipseOutline"></ion-icon>
+        <ion-icon slot="icon-only" :icon="ellipsisHorizontalOutline"></ion-icon>
+      </ion-button>
+      <ion-button
+        @click="$emit('rate', ingredient)"
+        v-else-if="score === -1"
+        color="dark"
+        fill="clear"
+      >
+        <ion-icon slot="icon-only" :icon="thumbsDownOutline"></ion-icon>
+      </ion-button>
+      <ion-button
+        @click="$emit('rate', ingredient)"
+        v-else-if="score === -2"
+        color="dark"
+        fill="clear"
+      >
+        <ion-icon slot="icon-only" :icon="thumbsDownSharp"></ion-icon>
       </ion-button>
     </template>
   </ion-item>
@@ -67,6 +83,11 @@ import {
   checkmarkCircleOutline,
   closeCircleOutline,
   ellipseOutline,
+  thumbsUpOutline,
+  thumbsUpSharp,
+  thumbsDownOutline,
+  thumbsDownSharp,
+  ellipsisHorizontalOutline,
 } from "ionicons/icons";
 import { useIngredients } from "@/store/ingredients";
 import { storeToRefs } from "pinia";
