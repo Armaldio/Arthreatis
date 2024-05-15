@@ -18,6 +18,7 @@
       >
         <ion-icon slot="icon-only" :icon="helpCircleOutline"></ion-icon>
       </ion-button>
+      
       <ion-button
         @click="$emit('rate', ingredient)"
         v-else-if="score === 2"
@@ -26,14 +27,16 @@
       >
         <ion-icon slot="icon-only" :icon="thumbsUpSharp"></ion-icon>
       </ion-button>
+      
       <ion-button
         @click="$emit('rate', ingredient)"
         v-else-if="score === 1"
         fill="clear"
-        color="danger"
+        color="success"
       >
         <ion-icon slot="icon-only" :icon="thumbsUpOutline"></ion-icon>
       </ion-button>
+      
       <ion-button
         @click="$emit('rate', ingredient)"
         v-else-if="score === 0"
@@ -42,10 +45,11 @@
       >
         <ion-icon slot="icon-only" :icon="ellipsisHorizontalOutline"></ion-icon>
       </ion-button>
+      
       <ion-button
         @click="$emit('rate', ingredient)"
         v-else-if="score === -1"
-        color="dark"
+        color="danger"
         fill="clear"
       >
         <ion-icon slot="icon-only" :icon="thumbsDownOutline"></ion-icon>
@@ -53,7 +57,7 @@
       <ion-button
         @click="$emit('rate', ingredient)"
         v-else-if="score === -2"
-        color="dark"
+        color="danger"
         fill="clear"
       >
         <ion-icon slot="icon-only" :icon="thumbsDownSharp"></ion-icon>
